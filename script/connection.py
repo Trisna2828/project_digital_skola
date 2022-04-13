@@ -1,15 +1,11 @@
 #import libraries
 import os
-import psycopg2
-import mysql.connector
-
-
 
 def datalake_file_config():
         config_file = "\config\data_lake.conf"
         return config_file
 
-def db_config(fileconf):
+def data_config(fileconf):
         config = {}
         rfile = open(os.getcwd() + fileconf, "r")
         for line in rfile:
@@ -22,6 +18,6 @@ def db_config(fileconf):
                         config[name] = value
         return config
 
-file = datalake_file_config()
-config = db_config(file)
-print(config)
+
+
+        
