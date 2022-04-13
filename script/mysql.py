@@ -1,6 +1,5 @@
 from sqlalchemy import create_engine
 
-
 class MySQL:
   def __init__(self, config):
     self.host = config['host']
