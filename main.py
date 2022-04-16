@@ -57,7 +57,7 @@ def create_star_schema(schema_name):
   conn.close()
 
 #fungsi mengembalikan dataframe untuk mengisi table province
-def insert_dim_province(data):
+def create_dim_province(data):
     #nama kolom awal pada raw data  
     column_input = ["kode_prov", "nama_prov"]
     #nama kolom output dataframe
@@ -70,7 +70,7 @@ def insert_dim_province(data):
     return data
 
 #fungsi mengembalikan dataframe untuk mengisi table district
-def insert_dim_district(data):
+def create_dim_district(data):
     column_input = ["kode_kab", "kode_prov", "nama_kab"]
     column_output = ["district_id", "province_id", "district_name"]
 
@@ -81,7 +81,7 @@ def insert_dim_district(data):
     return data
 
 #fungsi mengembalikan dataframe untuk mengisi table case
-def insert_dim_case(data):
+def create_dim_case(data):
     column_input = ["suspect_diisolasi", "suspect_discarded", "closecontact_dikarantina", "closecontact_discarded", "probable_diisolasi", "probable_discarded", "confirmation_sembuh", "confirmation_meninggal", "suspect_meninggal", "closecontact_meninggal", "probable_meninggal"]
     column_output = ["id", "status_name", "status_detail", "status"]
 
@@ -99,7 +99,7 @@ def insert_dim_case(data):
     return data
 
 #fungsi mengembalikan dataframe untuk mengisi table province_daily
-def insert_fact_province_daily(data, dim_case_df):
+def create_fact_province_daily(data, dim_case_df):
     column_input = ["tanggal", "kode_prov", "suspect_diisolasi", "suspect_discarded", "closecontact_dikarantina", "closecontact_discarded", "probable_diisolasi", "probable_discarded", "confirmation_sembuh", "confirmation_meninggal", "suspect_meninggal", "closecontact_meninggal", "probable_meninggal"]
     column_output = ['date', 'province_id', 'status', 'total']
 
@@ -122,7 +122,7 @@ def insert_fact_province_daily(data, dim_case_df):
     return data
 
 #fungsi mengembalikan dataframe untuk mengisi table province_monthly
-def insert_fact_province_monthly(data, dim_case_df):
+def create_fact_province_monthly(data, dim_case_df):
     column_input = ["tanggal", "kode_prov", "suspect_diisolasi", "suspect_discarded", "closecontact_dikarantina", "closecontact_discarded", "probable_diisolasi", "probable_discarded", "confirmation_sembuh", "confirmation_meninggal", "suspect_meninggal", "closecontact_meninggal", "probable_meninggal"]
     column_output = ['month', 'province_id', 'status', 'total']
 
@@ -146,7 +146,7 @@ def insert_fact_province_monthly(data, dim_case_df):
     return data
 
 #fungsi mengembalikan dataframe untuk mengisi table province_yearly
-def insert_fact_province_yearly(data, dim_case_df):
+def create_fact_province_yearly(data, dim_case_df):
     column_input = ["tanggal", "kode_prov", "suspect_diisolasi", "suspect_discarded", "closecontact_dikarantina", "closecontact_discarded", "probable_diisolasi", "probable_discarded", "confirmation_sembuh", "confirmation_meninggal", "suspect_meninggal", "closecontact_meninggal", "probable_meninggal"]
     column_output = ['year', 'province_id', 'status', 'total']
 
@@ -170,7 +170,7 @@ def insert_fact_province_yearly(data, dim_case_df):
     return data
 
 #fungsi mengembalikan dataframe untuk mengisi table district_monthly
-def insert_fact_district_monthly(data, dim_case_df):
+def create_fact_district_monthly(data, dim_case_df):
     column_input = ["tanggal", "kode_kab", "suspect_diisolasi", "suspect_discarded", "closecontact_dikarantina", "closecontact_discarded", "probable_diisolasi", "probable_discarded", "confirmation_sembuh", "confirmation_meninggal", "suspect_meninggal", "closecontact_meninggal", "probable_meninggal"]
     column_output = ['month', 'district_id', 'status', 'total']
 
@@ -194,7 +194,7 @@ def insert_fact_district_monthly(data, dim_case_df):
     return data
 
 #fungsi mengembalikan dataframe untuk mengisi table district_yearly
-def insert_fact_district_yearly(data, dim_case_df):
+def create_fact_district_yearly(data, dim_case_df):
     column_input = ["tanggal", "kode_kab", "suspect_diisolasi", "suspect_discarded", "closecontact_dikarantina", "closecontact_discarded", "probable_diisolasi", "probable_discarded", "confirmation_sembuh", "confirmation_meninggal", "suspect_meninggal", "closecontact_meninggal", "probable_meninggal"]
     column_output = ['year', 'district_id', 'status', 'total']
 
@@ -218,7 +218,7 @@ def insert_fact_district_yearly(data, dim_case_df):
     return data
 
 #fungsi memasukkan data menuju data warehouse
-def insert_raw_to_warehouse(table_lakes_name,schema_name):
+def create_raw_to_warehouse(table_lakes_name,schema_name):
     #autentifikasi datalake MySQL
     mysql_auth = MySQL(credential['mysql_lake'])
     engine, engine_conn = mysql_auth.connect()
@@ -230,16 +230,16 @@ def insert_raw_to_warehouse(table_lakes_name,schema_name):
     data = data[column]
 
     #membuat dimension dataframe
-    dim_province = insert_dim_province(data)
-    dim_district = insert_dim_district(data)
-    dim_case = insert_dim_case(data)
+    dim_province = create_dim_province(data)
+    dim_district = create_dim_district(data)
+    dim_case = create_dim_case(data)
 
     #membuat fact dataframe
-    fact_province_daily = insert_fact_province_daily(data, dim_case)
-    fact_province_monthly = insert_fact_province_monthly(data, dim_case)
-    fact_province_yearly = insert_fact_province_yearly(data, dim_case)
-    fact_district_monthly = insert_fact_district_monthly(data, dim_case)
-    fact_district_yearly = insert_fact_district_yearly(data, dim_case)
+    fact_province_daily = create_fact_province_daily(data, dim_case)
+    fact_province_monthly = create_fact_province_monthly(data, dim_case)
+    fact_province_yearly = create_fact_province_yearly(data, dim_case)
+    fact_district_monthly = create_fact_district_monthly(data, dim_case)
+    fact_district_yearly = create_fact_district_yearly(data, dim_case)
 
     #autentifikasi database PostgreSQL
     postgre_auth = PostgreSQL(credential['postgresql_warehouse'])
