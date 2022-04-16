@@ -169,6 +169,29 @@ def create_fact_province_yearly(data, dim_case_df):
     
     return data
 
+#fungsi mengembalikan dataframe untuk mengisi table district_daily
+def create_fact_district_daily(data, dim_case_df):
+    column_input = ["tanggal", "kode_kab", "suspect_diisolasi", "suspect_discarded", "closecontact_dikarantina", "closecontact_discarded", "probable_diisolasi", "probable_discarded", "confirmation_sembuh", "confirmation_meninggal", "suspect_meninggal", "closecontact_meninggal", "probable_meninggal"]
+    column_output = ['date', 'district_id', 'status', 'total']
+
+    # AGGREGATE
+    data = data[column_input]
+    data = data.melt(id_vars=["tanggal", "kode_kab"], var_name="status", value_name="total").sort_values(["tanggal", "kode_kab", "status"])
+    data = data.groupby(by=['tanggal', 'kode_kab', 'status']).sum()
+    data = data.reset_index()
+
+    # REFORMAT
+    data.columns = column_output
+    data['id'] = np.arange(1, data.shape[0]+1)
+
+    # MERGE dengan case dataframe
+    dim_case_df = dim_case_df.rename({'id': 'case_id'}, axis=1)
+    data = pd.merge(data, dim_case_df, how='inner', on='status')
+    
+    data = data[['id', 'district_id', 'case_id', 'date', 'total']]
+    
+    return data
+
 #fungsi mengembalikan dataframe untuk mengisi table district_monthly
 def create_fact_district_monthly(data, dim_case_df):
     column_input = ["tanggal", "kode_kab", "suspect_diisolasi", "suspect_discarded", "closecontact_dikarantina", "closecontact_discarded", "probable_diisolasi", "probable_discarded", "confirmation_sembuh", "confirmation_meninggal", "suspect_meninggal", "closecontact_meninggal", "probable_meninggal"]
@@ -238,6 +261,7 @@ def insert_raw_to_warehouse(table_lakes_name,schema_name):
     fact_province_daily = create_fact_province_daily(data, dim_case)
     fact_province_monthly = create_fact_province_monthly(data, dim_case)
     fact_province_yearly = create_fact_province_yearly(data, dim_case)
+    fact_district_daily = create_fact_district_daily(data, dim_case)
     fact_district_monthly = create_fact_district_monthly(data, dim_case)
     fact_district_yearly = create_fact_district_yearly(data, dim_case)
 
@@ -254,6 +278,7 @@ def insert_raw_to_warehouse(table_lakes_name,schema_name):
     fact_province_daily.to_sql('fact_province_daily', schema=schema_name, con=engine, index=False, if_exists='replace')
     fact_province_monthly.to_sql('fact_province_monthly', schema=schema_name, con=engine, index=False, if_exists='replace')
     fact_province_yearly.to_sql('fact_province_yearly', schema=schema_name, con=engine, index=False, if_exists='replace')
+    fact_district_daily.to_sql('fact_district_daily', schema=schema_name, con=engine, index=False, if_exists='replace')
     fact_district_monthly.to_sql('fact_district_monthly', schema=schema_name, con=engine, index=False, if_exists='replace')
     fact_district_yearly.to_sql('fact_district_yearly', schema=schema_name, con=engine, index=False, if_exists='replace')
 
