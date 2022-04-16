@@ -218,7 +218,7 @@ def create_fact_district_yearly(data, dim_case_df):
     return data
 
 #fungsi memasukkan data menuju data warehouse
-def create_raw_to_warehouse(table_lakes_name,schema_name):
+def insert_raw_to_warehouse(table_lakes_name,schema_name):
     #autentifikasi datalake MySQL
     mysql_auth = MySQL(credential['mysql_lake'])
     engine, engine_conn = mysql_auth.connect()
